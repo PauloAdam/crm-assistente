@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Assistente</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #090b10;
+  --s1: #0e1117;
+  --s2: #141922;
+  --s3: #1c2333;
+  --s4: #242d3f;
+  --b1: rgba(255,255,255,.07);
+  --b2: rgba(255,255,255,.12);
+  --b3: rgba(255,255,255,.18);
+  --blue: #4d9eff;
+  --blue-d: #1d4ed8;
+  --blue-dim: rgba(77,158,255,.1);
+  --green: #23d18b;
+  --green-dim: rgba(35,209,139,.1);
+  --purple: #a78bfa;
+  --purple-d: #6d28d9;
+  --purple-dim: rgba(167,139,250,.1);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,.1);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.1);
+  --t1: #e2e8f0;
+  --t2: #8892a4;
+  --t3: #4a5568;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--bg); color: var(--t1); font-size: 14px; line-height: 1.6; }
+* { scrollbar-width: thin; scrollbar-color: var(--b2) transparent; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+
+/* ══════════════ TOPBAR ══════════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  height: 50px; padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(9,11,16,.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--b1);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: glow 2s ease-in-out infinite;
+}
+@keyframes glow { 0%,100%{opacity:1;box-shadow:0 0 8px var(--green)} 50%{opacity:.4;box-shadow:0 0 3px var(--green)} }
+.logo-text { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--t2); letter-spacing: .5px; }
+.logo-text em { color: var(--blue); font-style: normal; }
+.topbar-stats { display: flex; gap: 8px; }
+.stat-chip {
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--s2); border: 1px solid var(--b1);
+  font-family: var(--mono); font-size: 10px; color: var(--t3);
+  display: flex; align-items: center; gap: 5px;
+}
+.stat-chip b { color: var(--t2); font-weight: 500; }
+
+/* ══════════════ LAYOUT ══════════════ */
+.layout { display: grid; grid-template-columns: 290px 1fr; height: calc(100vh - 50px); overflow: hidden; }
+
+/* ══════════════ SIDEBAR ══════════════ */
+.sidebar {
+  background: var(--s1); border-right: 1px solid var(--b1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.sb-section { padding: 14px 16px; border-bottom: 1px solid var(--b1); }
+.sb-label {
+  font-family: var(--mono); font-size: 9px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--t3); margin-bottom: 8px;
+}
+
+/* File drop */
+.file-drop {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius);
+  background: var(--s2); border: 1px dashed var(--b2);
+  cursor: pointer; font-size: 12px; color: var(--t3);
+  transition: all .2s;
+}
+.file-drop:hover { border-color: var(--blue); color: var(--blue); }
+.file-drop.ok { border-style: solid; border-color: rgba(35,209,139,.35); color: var(--green); background: var(--green-dim); }
+.file-drop input { display: none; }
+
+/* Provider */
+.prov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+.pbtn {
+  padding: 8px; border-radius: 8px; border: 1px solid var(--b1);
+  background: var(--s2); color: var(--t3); font-size: 11px;
+  font-family: var(--mono); cursor: pointer; transition: all .15s;
+}
+.pbtn:hover { border-color: var(--b2); color: var(--t2); }
+.pbtn.on { background: var(--purple-dim); border-color: rgba(167,139,250,.35); color: var(--purple); }
+
+/* Key */
+.key-row { display: flex; gap: 6px; }
+.key-inp {
+  flex: 1; min-width: 0; padding: 7px 10px;
+  background: var(--s2); border: 1px solid var(--b1); border-radius: 8px;
+  color: var(--t1); font-family: var(--mono); font-size: 11px; outline: none;
+  transition: border-color .2s;
+}
+.key-inp:focus { border-color: rgba(167,139,250,.4); }
+.key-inp::placeholder { color: var(--t3); }
+.btn-save-key {
+  padding: 7px 12px; border-radius: 8px; border: 1px solid var(--b1);
+  background: var(--s2); color: var(--t2); font-size: 11px; cursor: pointer;
+  white-space: nowrap; transition: all .15s;
+}
+.btn-save-key:hover { border-color: var(--green); color: var(--green); }
+.btn-save-key.ok { border-color: var(--green); color: var(--green); }
+.key-hint { font-size: 10px; color: var(--t3); margin-top: 5px; }
+.key-hint.free { color: var(--green); }
+
+/* Mode tabs */
+.mode-tabs { display: flex; padding: 8px; gap: 4px; }
+.mode-tab {
+  flex: 1; padding: 9px 8px; border-radius: 8px; border: none;
+  background: transparent; color: var(--t3); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.mode-tab:hover { background: var(--s2); color: var(--t2); }
+.mode-tab.log-active { background: var(--blue-dim); color: var(--blue); }
+.mode-tab.chat-active { background: var(--purple-dim); color: var(--purple); }
+
+/* LOG PANEL */
+#log-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
+
+/* Image zone */
+.img-zone {
+  margin: 10px 12px 4px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  border: 1px dashed var(--b2); border-radius: 8px;
+  cursor: pointer; font-size: 11px; color: var(--t3); transition: all .15s;
+}
+.img-zone:hover { border-color: var(--b3); color: var(--t2); }
+.img-zone.ok { border-style: solid; border-color: rgba(35,209,139,.3); color: var(--green); }
+.img-zone input { display: none; }
+.img-preview-thumb { width: 30px; height: 30px; border-radius: 5px; object-fit: cover; display: none; flex-shrink: 0; }
+.btn-analyze-img {
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: var(--purple-dim); border: 1px solid rgba(167,139,250,.3);
+  color: var(--purple); font-size: 10px; font-weight: 600;
+  cursor: pointer; display: none; transition: all .15s;
+}
+.btn-analyze-img:hover { background: rgba(167,139,250,.2); }
+.btn-analyze-img:disabled { opacity: .4; cursor: not-allowed; }
+.btn-rm-img {
+  padding: 3px 7px; border: 1px solid var(--b1); background: transparent;
+  color: var(--t3); border-radius: 5px; font-size: 10px; cursor: pointer; display: none;
+}
+.btn-rm-img:hover { border-color: var(--red); color: var(--red); }
+
+/* Query */
+.query-wrap { padding: 8px 12px; }
+textarea.query-ta {
+  width: 100%; padding: 10px 12px;
+  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--radius);
+  color: var(--t1); font-family: var(--sans); font-size: 13px;
+  resize: none; outline: none; height: 86px; line-height: 1.55; transition: border-color .2s;
+}
+textarea.query-ta:focus { border-color: rgba(77,158,255,.4); box-shadow: 0 0 0 3px rgba(77,158,255,.06); }
+textarea.query-ta::placeholder { color: var(--t3); }
+
+/* SEARCH BUTTONS — main redesign */
+.search-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 0 12px 8px; }
+.search-btn {
+  padding: 10px 6px; border-radius: var(--radius); border: 1px solid transparent;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all .18s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.search-btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+.search-btn:active:not(:disabled) { transform: scale(.96); }
+.search-btn .sb-icon { font-size: 16px; line-height: 1; }
+.search-btn .sb-label { font-size: 9px; font-family: var(--mono); opacity: .85; }
+
+.btn-semantic {
+  background: linear-gradient(160deg, #064e3b 0%, #065f46 100%);
+  border-color: rgba(35,209,139,.2); color: #6ee7b7;
+  box-shadow: 0 2px 12px rgba(35,209,139,.1);
+}
+.btn-semantic:hover:not(:disabled) {
+  background: linear-gradient(160deg, #065f46 0%, #047857 100%);
+  box-shadow: 0 4px 20px rgba(35,209,139,.2); border-color: rgba(35,209,139,.4);
+}
+
+.btn-ia {
+  background: linear-gradient(160deg, #3b1d7a 0%, #5b21b6 100%);
+  border-color: rgba(167,139,250,.2); color: #c4b5fd;
+  box-shadow: 0 2px 12px rgba(167,139,250,.1);
+}
+.btn-ia:hover:not(:disabled) {
+  background: linear-gradient(160deg, #4c1d95 0%, #6d28d9 100%);
+  box-shadow: 0 4px 20px rgba(167,139,250,.2); border-color: rgba(167,139,250,.4);
+}
+
+.btn-kw {
+  background: var(--s3); border-color: var(--b2); color: var(--t2);
+}
+.btn-kw:hover:not(:disabled) { background: var(--s4); border-color: var(--b3); color: var(--t1); }
+
+/* Semantic status */
+.sem-status-row { display: flex; align-items: center; gap: 7px; padding: 0 12px 6px; }
+.sem-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; transition: all .3s; }
+.sem-dot.ready { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sem-dot.error { background: var(--t3); }
+#sem-txt { font-family: var(--mono); font-size: 10px; color: var(--t3); flex: 1; }
+.sem-bar-wrap { height: 2px; background: var(--b1); border-radius: 1px; overflow: hidden; margin: 0 12px 8px; display: none; }
+.sem-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--green)); border-radius: 1px; transition: width .3s; width: 0%; }
+
+/* Filters */
+.filter-bar { padding: 7px 12px; border-top: 1px solid var(--b1); }
+.fchips { display: flex; flex-wrap: wrap; gap: 4px; }
+.fc {
+  padding: 2px 8px; border-radius: 20px; border: 1px solid var(--b1);
+  font-size: 10px; font-family: var(--mono); cursor: pointer;
+  color: var(--t3); background: transparent; transition: all .12s; white-space: nowrap;
+}
+.fc:hover { border-color: var(--b2); color: var(--t2); }
+.fc.on { background: var(--blue-dim); border-color: rgba(77,158,255,.3); color: var(--blue); }
+
+/* Results list */
+.results-list { flex: 1; overflow-y: auto; padding: 6px; }
+.ri {
+  padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--b1);
+  margin-bottom: 4px; cursor: pointer; background: var(--s2); transition: all .15s;
+  animation: fadeUp .15s ease both;
+}
+@keyframes fadeUp { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
+.ri:hover { border-color: var(--b2); background: var(--s3); }
+.ri.active { border-color: rgba(77,158,255,.4); background: var(--blue-dim); }
+.ri-top { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.ri-rank {
+  width: 20px; height: 20px; border-radius: 50%; font-size: 9px; font-weight: 700;
+  font-family: var(--mono); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ri-rank.r1 { background: rgba(245,158,11,.15); color: var(--amber); }
+.ri-rank.r2 { background: rgba(148,163,184,.1); color: var(--t2); }
+.ri-rank.r3 { background: rgba(184,115,51,.12); color: #c9a27e; }
+.ri-rank.rn { background: var(--s3); color: var(--t3); }
+.ri-bar { flex: 1; height: 2px; background: var(--b1); border-radius: 1px; overflow: hidden; }
+.ri-bar-fill { height: 100%; border-radius: 1px; transition: width .4s; }
+.ri-bar-fill.blue { background: var(--blue); }
+.ri-bar-fill.purple { background: var(--purple); }
+.ri-bar-fill.green { background: var(--green); }
+.ri-pct { font-family: var(--mono); font-size: 9px; color: var(--t3); width: 26px; text-align: right; }
+.ri-cod { font-family: var(--mono); font-size: 10px; color: var(--t3); margin-bottom: 2px; }
+.ri-title {
+  font-size: 11px; color: var(--t2); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ri.active .ri-title { color: var(--t1); }
+.ri-tags { display: flex; gap: 3px; margin-top: 5px; flex-wrap: wrap; }
+.rtag {
+  font-size: 9px; font-family: var(--mono); padding: 1px 6px; border-radius: 4px;
+  background: var(--s3); color: var(--t3); border: 1px solid var(--b1);
+}
+.rtag.ai { background: var(--purple-dim); color: var(--purple); border-color: rgba(167,139,250,.2); }
+.rtag.sem { background: var(--green-dim); color: var(--green); border-color: rgba(35,209,139,.2); }
+.rtag.cat { background: var(--blue-dim); color: var(--blue); border-color: rgba(77,158,255,.2); }
+.ri-reason { font-size: 10px; color: var(--purple); font-style: italic; margin-top: 4px; line-height: 1.35; opacity: .9; }
+
+/* CHAT PANEL LEFT */
+#chat-panel-left { display: none; flex: 1; align-items: center; justify-content: center; padding: 20px; text-align: center; color: var(--t3); font-size: 12px; }
+
+/* ══════════════ MAIN PANEL ══════════════ */
+.main {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--s1);
+}
+
+/* Detail view */
+.detail-view {
+  flex: 1; overflow-y: auto; padding: 28px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 14px;
+}
+.empty-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--s3); border: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.empty-title { font-size: 15px; font-weight: 500; color: var(--t2); }
+.empty-sub { font-size: 13px; color: var(--t3); max-width: 260px; text-align: center; line-height: 1.6; }
+
+/* Detail content */
+.d-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.d-title { font-size: 15px; font-weight: 600; color: var(--t1); line-height: 1.45; flex: 1; }
+.d-code {
+  font-family: var(--mono); font-size: 11px; color: var(--blue);
+  background: var(--blue-dim); padding: 5px 11px; border-radius: 7px;
+  border: 1px solid rgba(77,158,255,.2); flex-shrink: 0; white-space: nowrap;
+}
+.d-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.d-badge {
+  font-size: 10px; font-family: var(--mono); padding: 3px 8px;
+  border-radius: 5px; border: 1px solid;
+}
+
+.why-box {
+  padding: 14px; border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(167,139,250,.07), rgba(167,139,250,.02));
+  border: 1px solid rgba(167,139,250,.15);
+}
+.why-box-label {
+  font-family: var(--mono); font-size: 9px; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--purple); margin-bottom: 6px;
+}
+.why-box-text { font-size: 13px; color: var(--t2); line-height: 1.65; }
+
+.nav-box {
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+  padding: 12px 14px; border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(35,209,139,.07), rgba(35,209,139,.02));
+  border: 1px solid rgba(35,209,139,.15);
+  font-family: var(--mono); font-size: 12px; color: var(--green);
+}
+.nav-sep { color: rgba(35,209,139,.3); margin: 0 2px; }
+
+.content-block { background: var(--s2); border: 1px solid var(--b1); border-radius: var(--radius-lg); overflow: hidden; }
+.cb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid var(--b1); background: var(--s3);
+}
+.cb-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--t3); }
+.cb-body { padding: 16px; font-size: 13px; line-height: 1.75; color: var(--t1); white-space: pre-wrap; word-break: break-word; }
+.btn-copy {
+  padding: 5px 12px; border: 1px solid var(--b2); background: transparent;
+  color: var(--t2); border-radius: 7px; font-size: 11px; font-family: var(--mono);
+  cursor: pointer; transition: all .15s;
+}
+.btn-copy:hover { border-color: var(--blue); color: var(--blue); }
+.btn-copy.ok { border-color: var(--green); color: var(--green); }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-block { background: var(--s2); border: 1px solid var(--b1); border-radius: var(--radius); padding: 13px; }
+.info-block-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--t3); margin-bottom: 6px; }
+.info-block-val { font-size: 13px; color: var(--t2); line-height: 1.55; }
+
+mark { background: rgba(245,158,11,.15); color: var(--amber); border-radius: 3px; padding: 0 2px; }
+
+/* Loading */
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 16px;
+}
+.spinner {
+  width: 36px; height: 36px; border: 2px solid var(--b2);
+  border-top-color: var(--purple); border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--t2); text-align: center; }
+.loading-sub { font-size: 11px; color: var(--purple); margin-top: 4px; }
+
+/* Error */
+.error-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 10px; text-align: center; padding: 24px;
+}
+.error-title { font-size: 14px; font-weight: 600; color: var(--red); }
+.error-msg { font-size: 12px; color: var(--t3); max-width: 360px; line-height: 1.6; }
+.error-hint { font-size: 11px; color: var(--t3); padding: 8px 14px; background: var(--s2); border-radius: 8px; border: 1px solid var(--b1); }
+
+/* ══════════════ CHAT ══════════════ */
+.chat-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; display: none; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+.msg { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.msg.ai { align-self: flex-start; align-items: flex-start; }
+.msg-name { font-size: 10px; color: var(--t3); font-family: var(--mono); padding: 0 4px; }
+.msg-bubble {
+  padding: 11px 15px; border-radius: 14px; font-size: 13px;
+  line-height: 1.65; word-break: break-word; white-space: pre-wrap;
+}
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #fff; border-bottom-right-radius: 4px;
+}
+.msg.ai .msg-bubble {
+  background: var(--s2); color: var(--t1);
+  border: 1px solid var(--b1); border-bottom-left-radius: 4px;
+}
+.msg-bubble.thinking { color: var(--t3); font-style: italic; }
+
+.chat-footer {
+  border-top: 1px solid var(--b1); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 9px;
+  background: var(--s1);
+}
+.quick-hints { display: flex; gap: 5px; flex-wrap: wrap; }
+.hint-btn {
+  padding: 5px 11px; border: 1px solid var(--b1); background: var(--s2);
+  color: var(--t3); border-radius: 20px; font-size: 11px;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.hint-btn:hover { border-color: rgba(167,139,250,.3); color: var(--purple); background: var(--purple-dim); }
+
+.chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+textarea.chat-ta {
+  flex: 1; padding: 11px 14px;
+  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--radius);
+  color: var(--t1); font-family: var(--sans); font-size: 13px;
+  resize: none; outline: none; height: 46px; max-height: 130px;
+  line-height: 1.5; transition: border-color .2s;
+}
+textarea.chat-ta:focus { border-color: rgba(167,139,250,.4); box-shadow: 0 0 0 3px rgba(167,139,250,.06); }
+textarea.chat-ta::placeholder { color: var(--t3); }
+.btn-send {
+  padding: 11px 20px; background: linear-gradient(135deg, #5b21b6, #7c3aed);
+  color: #fff; border: none; border-radius: var(--radius); font-size: 13px;
+  font-weight: 500; cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.btn-send:hover { background: linear-gradient(135deg, #6d28d9, #8b5cf6); box-shadow: 0 4px 20px rgba(167,139,250,.25); }
+.btn-send:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══════════════ TOAST ══════════════ */
+.toast {
+  position: fixed; bottom: 22px; right: 22px;
+  padding: 9px 18px; border-radius: var(--radius);
+  background: var(--s3); border: 1px solid var(--green); color: var(--green);
+  font-size: 12px; font-family: var(--mono); z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  animation: fadeUp .2s ease;
+}
+
+/* ══════════════ RESPONSIVE ══════════════ */
+@media (max-width: 860px) {
+  html, body { height: auto; overflow: auto; }
+  .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; overflow: visible; }
+  .sidebar { max-height: 60vh; border-right: none; border-bottom: 1px solid var(--b1); }
+  .main { min-height: 60vh; }
+  .info-grid { grid-template-columns: 1fr; }
+  .d-header { flex-direction: column; gap: 8px; }
+  .topbar-stats { display: none; }
+}
+</style>
+
+<!-- Transformers.js for semantic search -->
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+
+let embedder = null;
+window._semReady = false;
+window._logEmbeds = null;
+
+function setStatus(msg, state) {
+  const txt = document.getElementById('sem-txt');
+  const dot = document.getElementById('sem-dot');
+  if (txt) txt.textContent = msg;
+  if (dot) {
+    dot.className = 'sem-dot' + (state === 'ready' ? ' ready' : state === 'error' ? ' error' : '');
+  }
+}
+
+async function init() {
+  try {
+    setStatus('Carregando modelo semântico...', 'loading');
+    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    window._semReady = true;
+    window._embedText = async (text) => {
+      const out = await embedder(text, { pooling: 'mean', normalize: true });
+      return Array.from(out.data);
+    };
+    window._cosineSim = (a, b) => {
+      let dot = 0, na = 0, nb = 0;
+      for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+      return dot / (Math.sqrt(na) * Math.sqrt(nb) + 1e-9);
+    };
+    setStatus('Modelo pronto — aguardando logs', 'loading');
+  } catch(e) {
+    window._semReady = false;
+    setStatus('Modelo indisponível (use IA ou Rápido)', 'error');
+  }
+}
+
+// IndexedDB helpers
+const DB = 'crm_sem_v1';
+window._dbSave = async (hash, data) => {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('emb', { keyPath: 'id' });
+    req.onsuccess = e => {
+      const tx = e.target.result.transaction('emb', 'readwrite');
+      tx.objectStore('emb').put({ id: hash, data });
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej();
+    };
+    req.onerror = () => rej();
+  });
+};
+window._dbLoad = async (hash) => {
+  return new Promise((res) => {
+    const req = indexedDB.open(DB, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('emb', { keyPath: 'id' });
+    req.onsuccess = e => {
+      const r = e.target.result.transaction('emb').objectStore('emb').get(hash);
+      r.onsuccess = () => res(r.result?.data || null);
+      r.onerror = () => res(null);
+    };
+    req.onerror = () => res(null);
+  });
+};
+
+window._generateEmbeddings = async (logs) => {
+  if (!window._semReady) return null;
+  const bar = document.getElementById('sem-bar');
+  const fill = document.getElementById('sem-fill');
+  if (bar) bar.style.display = 'block';
+  const embeds = [];
+  const BATCH = 15;
+  for (let i = 0; i < logs.length; i += BATCH) {
+    const slice = logs.slice(i, i + BATCH);
+    const texts = slice.map(l => [l.t, l.prob, l.o?.substring(0,150)].filter(Boolean).join(' | '));
+    const res = await Promise.all(texts.map(t => window._embedText(t)));
+    embeds.push(...res);
+    const pct = Math.min(Math.round(((i + BATCH) / logs.length) * 100), 100);
+    if (fill) fill.style.width = pct + '%';
+    if (document.getElementById('sem-txt')) {
+      document.getElementById('sem-txt').textContent = `Gerando embeddings... ${Math.min(i+BATCH, logs.length)}/${logs.length}`;
+    }
+    await new Promise(r => setTimeout(r, 0));
+  }
+  if (bar) bar.style.display = 'none';
+  return embeds;
+};
+
+init();
+</script>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-pulse"></div>
+    <div class="logo-text">CRM <em>ASSISTENTE</em></div>
+  </div>
+  <div class="topbar-stats">
+    <div class="stat-chip">LOGS <b id="stat-total">—</b></div>
+    <div class="stat-chip">RESULTADO <b id="stat-result" style="color:var(--blue)">—</b></div>
+    <div class="stat-chip">IA <b id="stat-prov" style="color:var(--purple)">groq</b></div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<div class="sidebar">
+
+  <!-- Arquivo -->
+  <div class="sb-section">
+    <div class="sb-label">Arquivo de Logs</div>
+    <label class="file-drop" id="file-drop" ondragover="evPrevent(event)" ondrop="onDropFile(event)">
+      <input type="file" id="file-input" accept=".txt,.csv" onchange="handleFileSelect(this.files[0])">
+      <span id="file-icon" style="font-size:16px">📂</span>
+      <span id="file-label" style="font-size:12px">Carregar NotebookLM_V1.txt</span>
+    </label>
+  </div>
+
+  <!-- Provedor + Key -->
+  <div class="sb-section">
+    <div class="sb-label">Provedor de IA</div>
+    <div class="prov-grid">
+      <button class="pbtn" id="pb-claude" onclick="selectProvider('claude')">✦ Claude</button>
+      <button class="pbtn" id="pb-openai" onclick="selectProvider('openai')">⬡ ChatGPT</button>
+      <button class="pbtn" id="pb-gemini" onclick="selectProvider('gemini')">◈ Gemini</button>
+      <button class="pbtn on" id="pb-groq" onclick="selectProvider('groq')">⚡ Groq</button>
+    </div>
+    <div style="margin-top:10px">
+      <div class="sb-label" id="key-label">Chave API — Groq</div>
+      <div class="key-row">
+        <input type="password" class="key-inp" id="api-key" placeholder="gsk_...">
+        <button class="btn-save-key" id="btn-save-key" onclick="saveApiKey()">Salvar</button>
+      </div>
+      <div class="key-hint free" id="key-hint">✓ Grátis — console.groq.com → API Keys</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab log-active" id="tab-log" onclick="switchMode('log')">🔍 Buscar Log</button>
+    <button class="mode-tab" id="tab-chat" onclick="switchMode('chat')">💬 Assistente</button>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div id="log-panel">
+
+    <!-- Image drop -->
+    <label class="img-zone" id="img-zone" ondragover="evPrevent(event)" ondrop="onDropImg(event)">
+      <input type="file" id="img-input" accept="image/*" onchange="handleImgSelect(this.files[0])">
+      <img class="img-preview-thumb" id="img-thumb">
+      <span id="img-label">📎 Anexar print do erro</span>
+      <button class="btn-analyze-img" id="btn-analyze" onclick="analyzeImage(event)">Analisar</button>
+      <button class="btn-rm-img" id="btn-rm-img" onclick="removeImage(event)">✕</button>
+    </label>
+
+    <!-- Query -->
+    <div class="query-wrap">
+      <textarea class="query-ta" id="query-input"
+        placeholder="Cole o título ou descrição do chamado...&#10;&#10;Ex: usuário não consegue fazer mudança de pacote no NETSMS, erro ao gerar solicitação"></textarea>
+    </div>
+
+    <!-- 3 search buttons -->
+    <div class="search-btns">
+      <button class="search-btn btn-semantic" id="btn-semantic" onclick="doSearch('semantic')">
+        <span class="sb-icon">🧠</span>
+        <span class="sb-label">Semântica</span>
+      </button>
+      <button class="search-btn btn-ia" id="btn-ia" onclick="doSearch('ai')">
+        <span class="sb-icon">✦</span>
+        <span class="sb-label">Buscar c/ IA</span>
+      </button>
+      <button class="search-btn btn-kw" id="btn-kw" onclick="doSearch('kw')">
+        <span class="sb-icon">⚡</span>
+        <span class="sb-label">Rápido</span>
+      </button>
+    </div>
+
+    <!-- Semantic status -->
+    <div class="sem-status-row">
+      <div class="sem-dot" id="sem-dot"></div>
+      <div id="sem-txt">Carregando modelo semântico...</div>
+    </div>
+    <div class="sem-bar-wrap" id="sem-bar">
+      <div class="sem-bar-fill" id="sem-fill"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="fchips" id="filter-chips">
+        <button class="fc on" onclick="setCategory('todos', this)">Todos</button>
+      </div>
+    </div>
+
+    <!-- Result list -->
+    <div class="results-list" id="result-list">
+      <div style="padding:24px;text-align:center;font-size:11px;color:var(--t3);font-family:var(--mono)">
+        Carregue o arquivo e busque
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHAT LEFT indicator -->
+  <div id="chat-panel-left" style="display:none;flex:1;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--t3);font-size:12px">
+    <div style="opacity:.35"><div style="font-size:40px;margin-bottom:8px">💬</div>Assistente ativo →</div>
+  </div>
+
+</div>
+<!-- ════════════ END SIDEBAR ════════════ -->
+
+<!-- ════════════ MAIN ════════════ -->
+<div class="main" id="main-panel">
+
+  <!-- Detail view (log mode) -->
+  <div class="detail-view" id="detail-view">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Nenhum log selecionado</div>
+      <div class="empty-sub">Carregue o arquivo de logs, cole um chamado e clique em Buscar</div>
+    </div>
+  </div>
+
+  <!-- Chat view (chat mode) -->
+  <div class="chat-view" id="chat-view">
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg ai">
+        <div class="msg-name">Assistente CRM</div>
+        <div class="msg-bubble">Olá! Sou seu assistente especialista em CRM de telefonia. 👋
+
+Tenho acesso à base completa de logs e conheço em profundidade:
+• NETSMS, Vsales, Netfone, ATLAS, Claro CRM
+• Suspensão temporária, mudança de pacote, migração, titularidade, perfil de acesso, falhas de processo, cancelamento, JOBs
+
+Posso te ajudar a:
+📋 Buscar e explicar o log correto para um chamado
+✍️ Redigir respostas e observações com conteúdo real dos logs
+📝 Montar passo a passo para orientar usuários
+🔍 Analisar erros e sugerir paliativos
+
+Me diga o que precisa!</div>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <div class="quick-hints">
+        <button class="hint-btn" onclick="useHint(this)">Log para erro de suspensão temporária</button>
+        <button class="hint-btn" onclick="useHint(this)">Usuário com perfil bloqueado no NETSMS</button>
+        <button class="hint-btn" onclick="useHint(this)">Redigir resposta para chamado em categoria errada</button>
+        <button class="hint-btn" onclick="useHint(this)">Passo a passo mudança de pacote</button>
+      </div>
+      <div class="chat-input-row">
+        <textarea class="chat-ta" id="chat-input"
+          placeholder="Digite sua pergunta ou pedido... (Enter envia, Shift+Enter nova linha)"
+          onkeydown="chatKeyDown(event)"></textarea>
+        <button class="btn-send" id="btn-send" onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- ════════════ END MAIN ════════════ -->
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let logs = [];
+let currentProvider = 'groq';
+let currentMode = 'log';        // 'log' | 'chat'
+let currentCategory = 'todos';
+let searchResults = [];
+let chatHistory = [];
+let imgBase64 = null;
+
+const PROVIDERS = {
+  claude: { label: 'Chave API — Anthropic', ph: 'sk-ant-...', hint: 'console.anthropic.com → API Keys', free: false },
+  openai: { label: 'Chave API — OpenAI',    ph: 'sk-...',     hint: 'platform.openai.com → API Keys',  free: false },
+  gemini: { label: 'Chave API — Gemini',    ph: 'AIza...',    hint: 'aistudio.google.com → API Key',   free: false },
+  groq:   { label: 'Chave API — Groq',      ph: 'gsk_...',    hint: '✓ Grátis — console.groq.com → API Keys', free: true },
+};
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.onload = () => {
+  const savedProv = localStorage.getItem('crm_provider') || 'groq';
+  selectProvider(savedProv, false);
+  const savedKey = localStorage.getItem('crm_key_' + savedProv);
+  if (savedKey) document.getElementById('api-key').value = savedKey;
+};
+
+function getApiKey() {
+  return document.getElementById('api-key').value.trim() || localStorage.getItem('crm_key_' + currentProvider) || '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILE LOADING
+// ═══════════════════════════════════════════════════════════
+function evPrevent(e) { e.preventDefault(); }
+function onDropFile(e) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFileSelect(f); }
+
+function handleFileSelect(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const raw = e.target.result;
+    parseLogs(raw);
+    const drop = document.getElementById('file-drop');
+    drop.classList.add('ok');
+    document.getElementById('file-icon').textContent = '✓';
+    document.getElementById('file-label').textContent = `${logs.length.toLocaleString('pt-BR')} logs — ${file.name}`;
+    document.getElementById('stat-total').textContent = logs.length.toLocaleString('pt-BR');
+    buildCategoryFilters();
+    setupSemanticEmbeddings(raw);
+  };
+  reader.readAsText(file, 'latin1');
+}
+
+function parseLogs(text) {
+  logs = [];
+  const lines = text.split('\n');
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = splitCSV(line);
+    if (parts.length < 6) continue;
+    const clean = s => {
+      s = (s || '').trim().replace(/^"|"$/g, '');
+      return ['0','N/A','N|A','N/C',''].includes(s) ? '' : s;
+    };
+    const log = {
+      c: clean(parts[0]),
+      t: clean(parts[1]),
+      o: clean(parts[2]),
+      prob: clean(parts[5] || ''),
+      s: clean(parts[6] || ''),
+      a: clean(parts[7] || ''),
+      f: clean(parts[12] || ''),
+    };
+    if (log.c && log.t) logs.push(log);
+  }
+}
+
+function splitCSV(line) {
+  const parts = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    else if (ch === ';' && !inQ) { parts.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  parts.push(cur);
+  return parts;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEMANTIC EMBEDDINGS SETUP
+// ═══════════════════════════════════════════════════════════
+async function setupSemanticEmbeddings(rawText) {
+  const txt = document.getElementById('sem-txt');
+  const dot = document.getElementById('sem-dot');
+
+  // Hash the file for cache key
+  let hash = 0;
+  for (let i = 0; i < Math.min(rawText.length, 80000); i++) {
+    hash = ((hash << 5) - hash) + rawText.charCodeAt(i); hash |= 0;
+  }
+  const fileHash = 'crm_' + hash.toString(36) + '_' + logs.length;
+
+  // Try cache first
+  if (window._dbLoad) {
+    const cached = await window._dbLoad(fileHash);
+    if (cached && cached.length === logs.length) {
+      window._logEmbeds = cached;
+      if (txt) txt.textContent = `✓ ${logs.length.toLocaleString('pt-BR')} embeddings em cache — Semântica pronta`;
+      if (dot) dot.className = 'sem-dot ready';
+      return;
+    }
+  }
+
+  // Wait for model to be ready (up to 30s)
+  if (!window._semReady) {
+    if (txt) txt.textContent = 'Aguardando modelo...';
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 500));
+      if (window._semReady) break;
+    }
+  }
+
+  if (!window._semReady) {
+    if (txt) txt.textContent = 'Modelo indisponível — use IA ou Rápido';
+    if (dot) dot.className = 'sem-dot error';
+    return;
+  }
+
+  // Generate embeddings
+  if (window._generateEmbeddings) {
+    const embeds = await window._generateEmbeddings(logs);
+    if (embeds) {
+      window._logEmbeds = embeds;
+      if (window._dbSave) window._dbSave(fileHash, embeds).catch(() => {});
+      if (txt) txt.textContent = `✓ ${logs.length.toLocaleString('pt-BR')} embeddings prontos — Semântica ativa`;
+      if (dot) dot.className = 'sem-dot ready';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CATEGORY
+// ═══════════════════════════════════════════════════════════
+function getCategory(title) {
+  const t = (title || '').toLowerCase();
+  if (t.includes('netsales')) return 'Netsales';
+  if (t.includes('suspensao temporaria')) return 'Suspensão Temp.';
+  if (t.includes('mudanca de pacote')) return 'Mudança de Pacote';
+  if (t.includes('cancelamento')) return 'Cancelamento';
+  if (t.includes('transferencia de titularidade')) return 'Titularidade';
+  if (t.includes('migracao')) return 'Migração';
+  if (t.includes('perfil') && (t.includes('acesso') || t.includes('usuario'))) return 'Perfil/Acesso';
+  if (t.startsWith('job') || t.includes('abort')) return 'JOB';
+  if (t.includes('fepp')) return 'FEPP';
+  if (t.includes('nmc')) return 'NMC';
+  if (t.includes('netfone')) return 'Netfone';
+  if (t.includes('claro crm')) return 'Claro CRM';
+  if (t.startsWith('crm')) return 'CRM';
+  if (t.includes('netsms')) return 'NETSMS';
+  if (t.includes('vsales')) return 'Vsales';
+  if (t.includes('atlas')) return 'Atlas';
+  if (t.includes('falha de processo')) return 'Falha Processo';
+  return 'Outros';
+}
+
+function buildCategoryFilters() {
+  const cats = [...new Set(logs.map(l => getCategory(l.t)))].sort();
+  const row = document.getElementById('filter-chips');
+  row.innerHTML = '<button class="fc on" onclick="setCategory(\'todos\', this)">Todos</button>';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'fc'; btn.textContent = cat;
+    btn.onclick = () => setCategory(cat, btn);
+    row.appendChild(btn);
+  });
+}
+
+function setCategory(cat, el) {
+  currentCategory = cat;
+  document.querySelectorAll('.fc').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROVIDER
+// ═══════════════════════════════════════════════════════════
+function selectProvider(prov, save = true) {
+  currentProvider = prov;
+  if (save) localStorage.setItem('crm_provider', prov);
+  ['claude','openai','gemini','groq'].forEach(p => {
+    const btn = document.getElementById('pb-' + p);
+    if (btn) btn.className = 'pbtn' + (p === prov ? ' on' : '');
+  });
+  const cfg = PROVIDERS[prov];
+  const lbl = document.getElementById('key-label');
+  const inp = document.getElementById('api-key');
+  const hint = document.getElementById('key-hint');
+  if (lbl) lbl.textContent = cfg.label;
+  if (inp) { inp.placeholder = cfg.ph; inp.value = localStorage.getItem('crm_key_' + prov) || ''; }
+  if (hint) { hint.textContent = cfg.hint; hint.className = 'key-hint' + (cfg.free ? ' free' : ''); }
+  const statProv = document.getElementById('stat-prov');
+  if (statProv) statProv.textContent = prov;
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key').value.trim();
+  if (!key) return;
+  localStorage.setItem('crm_key_' + currentProvider, key);
+  const btn = document.getElementById('btn-save-key');
+  btn.textContent = '✓ Salvo'; btn.classList.add('ok');
+  setTimeout(() => { btn.textContent = 'Salvar'; btn.classList.remove('ok'); }, 2000);
+  toast('Chave salva!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODE SWITCH
+// ═══════════════════════════════════════════════════════════
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tab-log').className = 'mode-tab' + (mode === 'log' ? ' log-active' : '');
+  document.getElementById('tab-chat').className = 'mode-tab' + (mode === 'chat' ? ' chat-active' : '');
+  document.getElementById('log-panel').style.display = mode === 'log' ? 'flex' : 'none';
+  document.getElementById('log-panel').style.flexDirection = 'column';
+  document.getElementById('log-panel').style.flex = '1';
+  document.getElementById('log-panel').style.overflow = 'hidden';
+  document.getElementById('log-panel').style.minHeight = '0';
+  document.getElementById('chat-panel-left').style.display = mode === 'chat' ? 'flex' : 'none';
+  document.getElementById('detail-view').style.display = mode === 'log' ? 'flex' : 'none';
+  document.getElementById('chat-view').style.display = mode === 'chat' ? 'flex' : 'none';
+  if (mode === 'chat') document.getElementById('chat-input').focus();
+}
+
+// ═══════════════════════════════════════════════════════════
+// KEYWORD SCORING
+// ═══════════════════════════════════════════════════════════
+function normalize(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ');
+}
+function tokenize(s) {
+  const stopwords = new Set(['ao','um','uma','que','nao','por','de','da','do','em','no','na','os','as','se','foi','para','com','mas','e','a','o','ou','sua','seu','ha','este','essa','esta','pelo','pela','esse','devido','favor','voce','usuario','porem','isso','mais','pode','deve','caso','sera','como','quando','sobre','qual']);
+  return normalize(s).split(/\s+/).filter(t => t.length > 2 && !stopwords.has(t));
+}
+function kwScore(log, qt) {
+  const fields = [
+    { toks: tokenize(log.t), w: 5 },
+    { toks: tokenize(log.prob), w: 3 },
+    { toks: tokenize(log.o), w: 2 },
+    { toks: tokenize(log.s), w: 1.5 },
+    { toks: tokenize(log.a), w: 1 },
+  ];
+  let score = 0; const seen = new Set();
+  for (const q of qt) {
+    for (const f of fields) {
+      const hit = f.toks.some(t => t === q || (t.length > 3 && t.includes(q)) || (q.length > 4 && q.includes(t)));
+      const key = q + '|' + f.w;
+      if (hit && !seen.has(key)) { score += f.w; seen.add(key); }
+    }
+  }
+  const nt = normalize(log.t);
+  for (let i = 0; i < qt.length - 1; i++) if (nt.includes(qt[i] + ' ' + qt[i+1])) score += 4;
+  for (let i = 0; i < qt.length - 2; i++) if (nt.includes(qt[i] + ' ' + qt[i+1] + ' ' + qt[i+2])) score += 7;
+  return score;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════
+async function doSearch(type) {
+  if (!logs.length) { alert('Carregue o arquivo de logs primeiro!'); return; }
+  const query = document.getElementById('query-input').value.trim();
+  if (!query) { document.getElementById('query-input').focus(); return; }
+
+  // Disable buttons
+  ['btn-semantic','btn-ia','btn-kw'].forEach(id => {
+    const b = document.getElementById(id); if (b) b.disabled = true;
+  });
+
+  try {
+    if (type === 'semantic') await searchSemantic(query);
+    else if (type === 'ai') await searchAI(query);
+    else searchKW(query);
+  } catch (e) {
+    showError(e.message);
+  }
+
+  // Re-enable
+  ['btn-semantic','btn-ia','btn-kw'].forEach(id => {
+    const b = document.getElementById(id); if (b) b.disabled = false;
+  });
+}
+
+function getPool() {
+  return currentCategory === 'todos' ? logs : logs.filter(l => getCategory(l.t) === currentCategory);
+}
+
+// KW Search
+function searchKW(query) {
+  const qt = tokenize(query);
+  const pool = getPool();
+  const scored = pool.map(l => ({ log: l, score: kwScore(l, qt), type: 'kw' }))
+    .filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 20);
+  const max = scored[0]?.score || 1;
+  searchResults = scored.map((x, i) => ({
+    log: x.log, pct: Math.round((x.score / max) * 100),
+    rank: i + 1, reason: '', type: 'kw'
+  }));
+  document.getElementById('stat-result').textContent = searchResults.length;
+  renderResults(qt, '⚡ KW');
+}
+
+// Semantic Search
+async function searchSemantic(query) {
+  if (!window._logEmbeds) {
+    if (!window._semReady) {
+      alert('Modelo semântico ainda carregando. Aguarde e tente novamente.');
+    } else {
+      alert('Embeddings ainda sendo gerados. Aguarde a barra de progresso terminar.');
+    }
+    return;
+  }
+  if (window._logEmbeds.length !== logs.length) {
+    alert('Embeddings desatualizados. Recarregue o arquivo de logs.');
+    return;
+  }
+
+  showLoading('Calculando similaridade semântica...');
+  await new Promise(r => setTimeout(r, 10)); // let UI update
+
+  const qEmbed = await window._embedText(query);
+  const pool = getPool();
+
+  // Map pool to original indices
+  const scored = pool.map(log => {
+    const origIdx = logs.indexOf(log);
+    const score = origIdx >= 0 ? window._cosineSim(qEmbed, window._logEmbeds[origIdx]) : 0;
+    return { log, score, type: 'sem' };
+  }).sort((a, b) => b.score - a.score).slice(0, 20);
+
+  const max = scored[0]?.score || 1;
+  searchResults = scored.map((x, i) => ({
+    log: x.log,
+    pct: Math.round((x.score / max) * 100),
+    rank: i + 1,
+    reason: `Similaridade semântica: ${(x.score * 100).toFixed(1)}%`,
+    type: 'sem'
+  }));
+
+  document.getElementById('stat-result').textContent = searchResults.length;
+  renderResults(tokenize(query), '🧠 Semântica');
+}
+
+// AI Search
+async function searchAI(query) {
+  const key = getApiKey();
+  if (!key) { alert('Configure sua chave de API e clique Salvar'); return; }
+
+  showLoading('Pré-filtrando candidatos...');
+  await new Promise(r => setTimeout(r, 10));
+
+  const qt = tokenize(query);
+  const pool = getPool();
+  let cands = pool.map(l => ({ log: l, sc: kwScore(l, qt) })).sort((a, b) => b.sc - a.sc);
+  let top = cands.filter(x => x.sc > 0).slice(0, 25);
+  if (top.length < 8) top = [...top, ...cands.filter(x => x.sc === 0).slice(0, 15 - top.length)];
+
+  const logList = top.slice(0, 20).map((x, i) => {
+    let entry = `[${i}] COD:${x.log.c}\nTÍTULO: ${x.log.t.substring(0, 100)}`;
+    if (x.log.prob) entry += `\nCAUSA: ${x.log.prob.substring(0, 80)}`;
+    if (x.log.o) entry += `\nOBS: ${x.log.o.substring(0, 80)}`;
+    if (x.log.s) entry += `\nCAMINHO: ${x.log.s.substring(0, 60)}`;
+    return entry;
+  }).join('\n\n');
+
+  updateLoadingSub('Consultando ' + currentProvider + '...');
+
+  const system = `Você é analista sênior de suporte CRM de telefonia com 10 anos de experiência nos sistemas NETSMS, Vsales, Netfone, ATLAS, Claro CRM e processos da Claro Brasil.
+Analise semanticamente o chamado recebido e ranqueie os logs mais relevantes.
+Responda APENAS com JSON válido. Sem markdown.`;
+
+  const user = `CHAMADO: "${query}"
+
+LOGS DISPONÍVEIS:
+${logList}
+
+Retorne JSON:
+{"analise":"descrição do problema em 1 frase","ranking":[{"idx":0,"relevancia":97,"motivo":"razão clara em 1 frase"}]}
+Inclua apenas relevância ≥ 40. Máximo 8 logs.`;
+
+  let raw = '';
+  try {
+    if (currentProvider === 'claude') {
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1200, system, messages:[{role:'user',content:user}] }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Claude ' + r.status); }
+      raw = (await r.json()).content[0].text;
+    } else if (currentProvider === 'groq') {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:1200, temperature:0, messages:[{role:'system',content:system},{role:'user',content:user}] }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Groq ' + r.status); }
+      raw = (await r.json()).choices[0].message.content;
+    } else if (currentProvider === 'openai') {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'gpt-4o-mini', max_tokens:1200, temperature:0, messages:[{role:'system',content:system},{role:'user',content:user}], response_format:{type:'json_object'} }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro OpenAI ' + r.status); }
+      raw = (await r.json()).choices[0].message.content;
+    } else if (currentProvider === 'gemini') {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contents:[{parts:[{text:system+'\n\n'+user}]}], generationConfig:{maxOutputTokens:1200,temperature:0} }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Gemini ' + r.status); }
+      raw = (await r.json()).candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+  } catch(e) { throw e; }
+
+  const ai = JSON.parse(raw.replace(/```json|```/g, '').trim());
+  const ranking = ai.ranking || [];
+
+  searchResults = ranking
+    .filter(r => r.idx >= 0 && r.idx < top.length)
+    .map((r, i) => ({
+      log: top[r.idx].log, pct: r.relevancia, rank: i + 1,
+      reason: r.motivo || '', type: 'ai', analise: ai.analise || ''
+    }));
+
+  document.getElementById('stat-result').textContent = searchResults.length;
+  renderResults(qt, '✦ IA — ' + currentProvider, ai.analise);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function renderResults(qt, badge, analise) {
+  const list = document.getElementById('result-list');
+
+  if (!searchResults.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;font-size:11px;color:var(--t3);font-family:var(--mono)">Nenhum log encontrado. Tente outras palavras.</div>';
+    showDetail('<div class="empty-state"><div class="empty-icon">🤔</div><div class="empty-title">Sem resultados</div><div class="empty-sub">Tente reformular o chamado ou use outro modo de busca</div></div>');
+    return;
+  }
+
+  let html = '';
+  if (analise) {
+    html += `<div style="padding:8px 10px;margin-bottom:4px;background:var(--purple-dim);border:1px solid rgba(167,139,250,.2);border-radius:8px;font-size:10px;color:var(--purple);font-family:var(--mono);font-style:italic">✦ ${esc(analise)}</div>`;
+  }
+
+  searchResults.forEach((r, i) => {
+    const cat = getCategory(r.log.t);
+    const rankClass = r.rank === 1 ? 'r1' : r.rank === 2 ? 'r2' : r.rank === 3 ? 'r3' : 'rn';
+    const barColor = r.type === 'sem' ? 'green' : r.type === 'ai' ? 'purple' : 'blue';
+    const tagType = r.type === 'sem' ? 'sem' : r.type === 'ai' ? 'ai' : '';
+
+    html += `
+    <div class="ri" id="ri-${i}" onclick="selectResult(${i})" style="animation-delay:${i * 0.03}s">
+      <div class="ri-top">
+        <div class="ri-rank ${rankClass}">${r.rank}</div>
+        <div class="ri-bar"><div class="ri-bar-fill ${barColor}" style="width:${r.pct}%"></div></div>
+        <div class="ri-pct">${r.pct}%</div>
+      </div>
+      <div class="ri-cod">#${r.log.c}</div>
+      <div class="ri-title">${hlText(r.log.t, qt)}</div>
+      ${r.reason ? `<div class="ri-reason">✦ ${esc(r.reason)}</div>` : ''}
+      <div class="ri-tags">
+        <span class="rtag cat">${cat}</span>
+        ${tagType ? `<span class="rtag ${tagType}">${r.type === 'sem' ? '🧠' : r.type === 'ai' ? '✦ IA' : ''}</span>` : ''}
+      </div>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+  showDetail('<div class="empty-state"><div class="empty-icon" style="font-size:24px">←</div><div class="empty-sub">' + searchResults.length + ' logs encontrados<br>Selecione um para ver a resolução</div></div>');
+}
+
+function selectResult(i) {
+  document.querySelectorAll('.ri').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('ri-' + i);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+  renderDetailView(searchResults[i]);
+}
+
+function renderDetailView(r) {
+  const { log, pct, rank, reason, type } = r;
+  const cat = getCategory(log.t);
+  const navPath = (log.s || '').replace(/\s*[-–>→]+\s*/g, ' → ').trim();
+  const navParts = navPath ? navPath.split('→').map(s => s.trim()).filter(Boolean) : [];
+
+  let h = '';
+
+  h += `<div class="d-header">
+    <div class="d-title">${esc(log.t)}</div>
+    <div class="d-code">#${log.c}</div>
+  </div>`;
+
+  h += `<div class="d-meta">
+    <span class="d-badge" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(77,158,255,.2)">${cat}</span>
+    <span class="d-badge" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,.2)">Rank #${rank}</span>
+    <span class="d-badge" style="background:${type==='sem'?'var(--green-dim)':type==='ai'?'var(--purple-dim)':'var(--blue-dim)'};color:${type==='sem'?'var(--green)':type==='ai'?'var(--purple)':'var(--blue)'};border-color:${type==='sem'?'rgba(35,209,139,.2)':type==='ai'?'rgba(167,139,250,.2)':'rgba(77,158,255,.2)'}">${pct}% match</span>
+    <span class="d-badge" style="background:var(--s3);color:var(--t3);border-color:var(--b1)">${type==='sem'?'🧠 Semântica':type==='ai'?'✦ IA':'⚡ Rápido'}</span>
+  </div>`;
+
+  if (reason) {
+    h += `<div class="why-box"><div class="why-box-label">✦ Por que este log foi selecionado</div><div class="why-box-text">${esc(reason)}</div></div>`;
+  }
+
+  if (navParts.length > 0) {
+    h += `<div class="nav-box">`;
+    navParts.forEach((p, i) => {
+      h += `<span>${esc(p)}</span>`;
+      if (i < navParts.length - 1) h += `<span class="nav-sep">→</span>`;
+    });
+    h += `</div>`;
+  }
+
+  if (log.o) {
+    h += `<div class="content-block">
+      <div class="cb-header">
+        <span class="cb-label">Resposta / Observação — copiar e colar no chamado</span>
+        <button class="btn-copy" onclick="copyText('obs-content', this)">Copiar</button>
+      </div>
+      <div class="cb-body" id="obs-content">${esc(log.o)}</div>
+    </div>`;
+  }
+
+  if (log.prob || log.a) {
+    h += `<div class="info-grid">`;
+    if (log.prob) h += `<div class="info-block"><div class="info-block-label">Causa raiz</div><div class="info-block-val">${esc(log.prob)}</div></div>`;
+    if (log.a) h += `<div class="info-block"><div class="info-block-label">Paliativo / Ação</div><div class="info-block-val">${esc(log.a)}</div></div>`;
+    h += `</div>`;
+  }
+
+  if (log.f) {
+    h += `<div class="info-block"><div class="info-block-label">Ação FCA / Melhoria</div><div class="info-block-val">${esc(log.f)}</div></div>`;
+  }
+
+  if (navPath && navParts.length > 1) {
+    h += `<div class="content-block">
+      <div class="cb-header">
+        <span class="cb-label">Caminho no sistema</span>
+        <button class="btn-copy" onclick="copyText('nav-content', this)">Copiar</button>
+      </div>
+      <div class="cb-body" id="nav-content">${esc(navPath)}</div>
+    </div>`;
+  }
+
+  showDetail(h);
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMAGE ANALYSIS
+// ═══════════════════════════════════════════════════════════
+function onDropImg(e) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) handleImgSelect(f); }
+
+function handleImgSelect(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    imgBase64 = e.target.result.split(',')[1];
+    const zone = document.getElementById('img-zone');
+    const thumb = document.getElementById('img-thumb');
+    zone.classList.add('ok');
+    thumb.src = e.target.result;
+    thumb.style.display = 'block';
+    document.getElementById('img-label').textContent = file.name;
+    document.getElementById('btn-analyze').style.display = 'block';
+    document.getElementById('btn-rm-img').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage(e) {
+  e.preventDefault(); e.stopPropagation();
+  imgBase64 = null;
+  document.getElementById('img-zone').classList.remove('ok');
+  document.getElementById('img-thumb').style.display = 'none';
+  document.getElementById('img-thumb').src = '';
+  document.getElementById('img-label').textContent = '📎 Anexar print do erro';
+  document.getElementById('btn-analyze').style.display = 'none';
+  document.getElementById('btn-rm-img').style.display = 'none';
+  document.getElementById('img-input').value = '';
+}
+
+async function analyzeImage(e) {
+  e.preventDefault(); e.stopPropagation();
+  if (!imgBase64) return;
+  const key = getApiKey();
+  if (!key) { alert('Configure sua chave API para analisar imagens'); return; }
+
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true; btn.textContent = 'Analisando...';
+
+  const prompt = `Analise este print de tela de um sistema CRM/telecom. Extraia em português:
+1. Mensagem de erro exata (se houver)
+2. Sistema/ferramenta em uso (NETSMS, Vsales, ATLAS, Netfone, Claro CRM, etc.)
+3. O que o usuário estava tentando fazer
+4. Informações relevantes (número de contrato, CPF, código de erro)
+Responda de forma concisa em 2-3 linhas como descrição de chamado de suporte técnico.`;
+
+  try {
+    let texto = '';
+    if (currentProvider === 'claude') {
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:300, messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/png',data:imgBase64}},{type:'text',text:prompt}]}] }) });
+      if (!r.ok) throw new Error('Erro Claude');
+      texto = (await r.json()).content[0].text;
+    } else if (currentProvider === 'openai') {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'gpt-4o-mini', max_tokens:300, messages:[{role:'user',content:[{type:'image_url',image_url:{url:'data:image/png;base64,'+imgBase64}},{type:'text',text:prompt}]}] }) });
+      if (!r.ok) throw new Error('Erro OpenAI');
+      texto = (await r.json()).choices[0].message.content;
+    } else if (currentProvider === 'groq') {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'meta-llama/llama-4-scout-17b-16e-instruct', max_tokens:300, messages:[{role:'user',content:[{type:'image_url',image_url:{url:'data:image/png;base64,'+imgBase64}},{type:'text',text:prompt}]}] }) });
+      if (!r.ok) throw new Error('Erro Groq vision');
+      texto = (await r.json()).choices[0].message.content;
+    } else {
+      alert('Análise de imagem disponível com Claude, ChatGPT ou Groq');
+      btn.disabled = false; btn.textContent = 'Analisar'; return;
+    }
+
+    const qta = document.getElementById('query-input');
+    qta.value = (qta.value ? qta.value + '\n\n' : '') + texto;
+    qta.focus();
+    setTimeout(() => doSearch('ai'), 300);
+
+  } catch (err) {
+    alert('Erro ao analisar imagem: ' + err.message);
+  }
+  btn.disabled = false; btn.textContent = 'Analisar';
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════════════════
+function useHint(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMessage();
+}
+
+function chatKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function addChatMsg(role, text, thinking = false) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-name">${role === 'user' ? 'Você' : 'Assistente CRM'}</div><div class="msg-bubble${thinking ? ' thinking' : ''}">${esc(text)}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function updateLastAiMsg(text) {
+  const wrap = document.getElementById('chat-messages');
+  const all = wrap.querySelectorAll('.msg.ai');
+  const last = all[all.length - 1];
+  if (last) {
+    const bubble = last.querySelector('.msg-bubble');
+    if (bubble) { bubble.textContent = text; bubble.classList.remove('thinking'); }
+  }
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+async function sendMessage() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  const key = getApiKey();
+  if (!key) { alert('Configure sua chave de API para usar o Assistente'); return; }
+
+  inp.value = ''; inp.style.height = '46px';
+  const btn = document.getElementById('btn-send');
+  btn.disabled = true; btn.textContent = '...';
+
+  addChatMsg('user', text);
+  addChatMsg('ai', 'Buscando na base e pensando...', true);
+  chatHistory.push({ role: 'user', content: text });
+
+  // Inject real logs if question is about CRM/logs/errors
+  const wantsLog = /log|chamado|resolv|passo|orienta|erro|mensagem|resposta|observa|codigo|procedimento|como|sistema|netsms|vsales|atlas|netfone|suspens|pacote|perfil|acesso|cancelamento|migracao/i.test(text);
+  let logContext = '';
+  if (wantsLog && logs.length > 0) {
+    const qt = tokenize(text);
+    let cands = qt.length > 0
+      ? logs.map(l => ({ log: l, sc: kwScore(l, qt) })).filter(x => x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, 10)
+      : logs.slice(0, 6).map(l => ({ log: l, sc: 0 }));
+    if (cands.length > 0) {
+      logContext = '\n\n━━━ LOGS REAIS DA BASE PARA ESTA PERGUNTA ━━━\n';
+      cands.forEach(x => {
+        const l = x.log;
+        logContext += `\n[LOG ${l.c}]\nTÍTULO: ${l.t}\n`;
+        if (l.prob) logContext += `CAUSA: ${l.prob}\n`;
+        if (l.o) logContext += `RESPOSTA: ${l.o.substring(0, 400)}\n`;
+        if (l.s) logContext += `CAMINHO: ${l.s}\n`;
+        if (l.a) logContext += `PALIATIVO: ${l.a}\n`;
+      });
+      logContext += `\n━━━ FIM (${cands.length} logs encontrados de ${logs.length} total) ━━━\n`;
+      logContext += '\nREGRA: Use APENAS os logs acima. Cite o código exato (ex: LOG 202310059). NUNCA invente logs.';
+    }
+  }
+
+  const total = logs.length;
+  const system = `Você é um assistente especialista em CRM de telefonia da Claro Brasil com 10 anos de experiência em NETSMS, Vsales, Netfone, ATLAS, Claro CRM e todos os processos: suspensão temporária, mudança de pacote, migração, titularidade, perfil de acesso, falhas de processo, cancelamento, JOBs.
+
+REGRAS ABSOLUTAS:
+1. A base tem ${total} logs no total. Por consulta você recebe apenas os mais relevantes.
+2. NUNCA invente logs, códigos ou conteúdos. Se não há logs no contexto, diga que não encontrou.
+3. Quando há logs no contexto, use APENAS eles — cite o código exato e o conteúdo real.
+4. Se perguntarem quantos logs você tem: "A base tem ${total} logs. Por consulta recebo os mais relevantes para sua pergunta."
+5. Responda em português, de forma direta e prática. Use numeração para passo a passo.${logContext}`;
+
+  const hist = chatHistory.slice(-8);
+  const msgs = [{ role: 'system', content: system }, ...hist];
+
+  try {
+    let resp = '';
+    if (currentProvider === 'claude') {
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1500, system, messages: hist }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Claude'); }
+      resp = (await r.json()).content[0].text;
+    } else if (currentProvider === 'groq') {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:1500, temperature:.15, messages: msgs }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Groq'); }
+      resp = (await r.json()).choices[0].message.content;
+    } else if (currentProvider === 'openai') {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key}, body: JSON.stringify({ model:'gpt-4o-mini', max_tokens:1500, temperature:.15, messages: msgs }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro OpenAI'); }
+      resp = (await r.json()).choices[0].message.content;
+    } else if (currentProvider === 'gemini') {
+      const gemH = hist.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] }));
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ system_instruction:{parts:[{text:system}]}, contents: gemH, generationConfig:{maxOutputTokens:1500,temperature:.15} }) });
+      if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Erro Gemini'); }
+      resp = (await r.json()).candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    chatHistory.push({ role: 'assistant', content: resp });
+    updateLastAiMsg(resp);
+  } catch (err) {
+    const wrap = document.getElementById('chat-messages');
+    const all = wrap.querySelectorAll('.msg.ai');
+    const last = all[all.length - 1];
+    if (last) {
+      const b = last.querySelector('.msg-bubble');
+      if (b) { b.textContent = 'Erro: ' + err.message; b.classList.remove('thinking'); b.style.color = 'var(--red)'; }
+    }
+  }
+
+  btn.disabled = false; btn.textContent = 'Enviar';
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function showDetail(html) {
+  const d = document.getElementById('detail-view');
+  if (d) { d.innerHTML = html; d.style.display = 'flex'; d.style.flexDirection = 'column'; }
+}
+
+function showLoading(msg) {
+  showDetail(`<div class="loading-state">
+    <div class="spinner"></div>
+    <div class="loading-text">${msg}<div class="loading-sub" id="loading-sub"></div></div>
+  </div>`);
+}
+
+function updateLoadingSub(msg) {
+  const el = document.getElementById('loading-sub');
+  if (el) el.textContent = msg;
+}
+
+function showError(msg) {
+  showDetail(`<div class="error-state">
+    <div style="font-size:32px">⚠️</div>
+    <div class="error-title">Erro na busca</div>
+    <div class="error-msg">${esc(msg)}</div>
+    <div class="error-hint">Verifique sua chave API ou use o modo ⚡ Rápido (não precisa de API)</div>
+  </div>`);
+}
+
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function hlText(text, toks) {
+  if (!toks?.length) return esc(text);
+  let r = esc(text);
+  const escaped = toks.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!escaped.length) return r;
+  return r.replace(new RegExp(`(${escaped.join('|')})`, 'gi'), '<mark>$1</mark>');
+}
+
+function copyText(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const prev = btn.textContent;
+    btn.textContent = '✓ Copiado!'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = prev; btn.classList.remove('ok'); }, 2500);
+  });
+}
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
+}
+
+// Auto-resize chat textarea
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = '46px';
+  this.style.height = Math.min(this.scrollHeight, 130) + 'px';
+});
+
+// Ctrl+Enter to search
+document.getElementById('query-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); doSearch('ai'); }
+});
+</script>
+</body>
+</html>
